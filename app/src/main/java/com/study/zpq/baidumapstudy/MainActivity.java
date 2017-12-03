@@ -23,7 +23,8 @@ import com.baidu.mapapi.model.LatLng;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
-    private MapView mMapView;
+    private MapView mapView;
+    private BaiduMap baiduMap;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +32,12 @@ public class MainActivity extends Activity {
         //此方法要再setContentView方法之前实现
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
-        mMapView =(MapView)findViewById(R.id.baiDuMv);
+        mapView =(MapView)findViewById(R.id.baiDuMv);
+        baiduMap = mapView.getMap();
+        //普通地图
+        //baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+        //卫星地图
+        baiduMap.setMapType(BaiduMap.MAP_TYPE_SATELLITE);
     }
     @Override
     protected void onStart()
@@ -50,8 +56,8 @@ public class MainActivity extends Activity {
     {
         super.onDestroy();
         // 在activity执行onDestroy时执行mMapView.onDestroy()
-        mMapView.onDestroy();
-        mMapView = null;
+        mapView.onDestroy();
+        mapView = null;
     }
 
     @Override
@@ -59,7 +65,7 @@ public class MainActivity extends Activity {
     {
         super.onResume();
         // 在activity执行onResume时执行mMapView. onResume ()
-        mMapView.onResume();
+        mapView.onResume();
     }
 
     @Override
@@ -67,7 +73,7 @@ public class MainActivity extends Activity {
     {
         super.onPause();
         // 在activity执行onPause时执行mMapView. onPause ()
-        mMapView.onPause();
+        mapView.onPause();
     }
 
 }
