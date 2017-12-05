@@ -37,6 +37,7 @@ import com.baidu.mapapi.map.TextOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
 import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.geocode.GeoCodeOption;
 import com.baidu.mapapi.search.geocode.GeoCodeResult;
 import com.baidu.mapapi.search.geocode.GeoCoder;
 import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
@@ -75,6 +76,10 @@ public class MainActivity extends Activity {
 
         //普通地图
         baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+
+        //初始化编码
+        InitGeoCoder();
+
 
         //卫星地图
 //        baiduMap.setMapType(BaiduMap.MAP_TYPE_SATELLITE);
@@ -115,11 +120,12 @@ public class MainActivity extends Activity {
         baiduMap.setOnMapClickListener(new BaiduMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                displayInfoWindow(latLng);
+                geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng));
             }
 
             @Override
             public boolean onMapPoiClick(MapPoi mapPoi) {
+                Toast.makeText(MainActivity.this, mapPoi.getName(),Toast.LENGTH_SHORT).show();
                 return false;
             }
         });
@@ -132,8 +138,8 @@ public class MainActivity extends Activity {
 
             @Override
             public void onMarkerDragEnd(Marker marker) {
-                Toast.makeText(MainActivity.this, "拖拽结束位置"+marker.getPosition().latitude + "   "
-                + marker.getPosition().longitude, Toast.LENGTH_LONG).show();
+
+                geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(marker.getPosition()));
             }
 
             @Override
@@ -142,15 +148,9 @@ public class MainActivity extends Activity {
             }
         });
 
-        //编码
-        InitGeoCoder();
-
-
     }
 
     private void InitGeoCoder() {
-        LatLng latLng = new LatLng(latitude, longitude);
-
         // 创建地理编码检索实例
         geoCoder = GeoCoder.newInstance();
         //
@@ -161,27 +161,21 @@ public class MainActivity extends Activity {
                 if (result == null
                         || result.error != SearchResult.ERRORNO.NO_ERROR) {
                     // 没有检测到结果
-                    Toast.makeText(MainActivity.this, "抱歉，未能找到结果",
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "抱歉，未能找到结果", Toast.LENGTH_LONG).show();
                 }
-                Toast.makeText(MainActivity.this,
-                        "位置：" + result.getAddress(), Toast.LENGTH_LONG)
-                        .show();
+                Toast.makeText(MainActivity.this, "位置：" + result.getAddress(), Toast.LENGTH_SHORT).show();
             }
 
             // 地理编码查询结果回调函数
             @Override
             public void onGetGeoCodeResult(GeoCodeResult result) {
-                if (result == null
-                        || result.error != SearchResult.ERRORNO.NO_ERROR) {
+                if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
                     // 没有检测到结果
                 }
             }
         };
         // 设置地理编码检索监听者
         geoCoder.setOnGetGeoCodeResultListener(listener);
-        // 释放地理编码检索实例
-        // geoCoder.destroy();
     }
 
     /**
@@ -191,13 +185,14 @@ public class MainActivity extends Activity {
         // 创建infowindow展示的view
         Button btn = new Button(getApplicationContext());
         btn.setBackgroundResource(R.drawable.popup);
-        btn.setText("点我点我----------");
+        btn.setText("位置："+latLng.latitude + "  " + latLng.longitude);
         BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory
                 .fromView(btn);
         // infowindow点击事件
         InfoWindow.OnInfoWindowClickListener infoWindowClickListener = new InfoWindow.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick() {
+                geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng));
                 //隐藏InfoWindow
                 baiduMap.hideInfoWindow();
             }
@@ -339,6 +334,8 @@ public class MainActivity extends Activity {
         super.onDestroy();
         // 在activity执行onDestroy时执行mMapView.onDestroy()
         mapView.onDestroy();
+        // 释放地理编码检索实例
+        geoCoder.destroy();
         mapView = null;
     }
 
